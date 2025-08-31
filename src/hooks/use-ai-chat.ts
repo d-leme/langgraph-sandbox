@@ -33,7 +33,8 @@ const createAiChatFunction =
     if (!response.ok) {
       throw new Error("Failed to send message to AI");
     }
-    return response.json();
+    const data = await response.json();
+    return data as ApiResponse<AiChatResponse>;
   };
 
 // Custom hook for AI chat with configurable endpoint
