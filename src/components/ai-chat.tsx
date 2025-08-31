@@ -352,25 +352,31 @@ export function AiChat({
                                 {entry.message}
                               </p>
                             </div>
-                            {/* Rollback button for AI messages */}
+                            {/* Rollback button for AI messages, only on hover */}
                             {isAi && aiVersion < version && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="border-muted-foreground/20 hover:bg-accent hover:text-accent-foreground ml-1 border transition-colors"
-                                    disabled={rollbackLoading}
-                                    onClick={() => handleRollback(aiVersion)}
-                                    aria-label={`Rollback to version ${aiVersion}`}
+                              <div className="hidden group-hover:block">
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="border-muted-foreground/20 hover:bg-primary/90 focus-visible:ring-primary ml-1 cursor-pointer rounded-full border bg-white/80 shadow-md transition-all duration-200 hover:text-white focus-visible:ring-2 focus-visible:ring-offset-2"
+                                      disabled={rollbackLoading}
+                                      onClick={() => handleRollback(aiVersion)}
+                                      aria-label={`Rollback to version ${aiVersion}`}
+                                    >
+                                      <RotateCcw className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    side="top"
+                                    className="text-xs"
                                   >
-                                    <RotateCcw className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="text-xs">
-                                  Rollback to this answer (version {aiVersion})
-                                </TooltipContent>
-                              </Tooltip>
+                                    Rollback to this answer (version {aiVersion}
+                                    )
+                                  </TooltipContent>
+                                </Tooltip>
+                              </div>
                             )}
                           </div>
 
