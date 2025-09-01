@@ -62,7 +62,6 @@ class WebAgent {
     this.toolNode = new ToolNode(tools);
   }
 
-  // The agent expects a goal in the first message, scrapes HTML, and returns it as a message
   async agent(state: typeof MessagesAnnotation.State) {
     const sys = new SystemMessage(
       `You are the Web Agent. Your only task is to use the Playwright MCP browser tools to navigate to the target web page specified by the user and extract its content.
@@ -70,7 +69,7 @@ class WebAgent {
        Return ONLY summary of your findings in a descriptive way in Markdown.`,
     );
     const resp = await this.model.invoke([sys, ...state.messages]);
-    // Wrap the content in a message with a special name for routing
+
     return {
       messages: [
         new AIMessage({
@@ -112,9 +111,7 @@ class FsAgent {
     this.toolNode = new ToolNode(tools);
   }
 
-  // The agent expects the HTML as the last message, summarizes it, and saves to a file
   async agent(state: typeof MessagesAnnotation.State) {
-    // Find the last message with name 'scraped_content' (from WebAgent)
     const htmlMsg = (() => {
       for (let i = state.messages.length - 1; i >= 0; i--) {
         if ((state.messages[i] as any).name === "scraped_content") {
@@ -123,17 +120,20 @@ class FsAgent {
       }
       return undefined;
     })();
-    const htmlContent = htmlMsg ? htmlMsg.content : "";
+
     const sys = new SystemMessage(
       `You are the Filesystem Agent. You will receive content from a website in summary form.
        Then save the summary to a file named 'ai-context/{name_of_company}.md' 
        in the root directory using the Filesystem MCP tools. Respond with a confirmation message after saving.`,
     );
-    // Pass the HTML as a HumanMessage
+
     const resp = await this.model.invoke([
       sys,
       ...state.messages,
-      new HumanMessage({ content: htmlContent, name: "html_for_summary" }),
+      new HumanMessage({
+        content: htmlMsg?.content ?? "",
+        name: "html_for_summary",
+      }),
     ]);
     return {
       messages: [
@@ -160,15 +160,11 @@ class OrchestratorAgent {
   });
 
   async agent(state: typeof MessagesAnnotation.State) {
-    // If the last message is from WebAgent and is scraped_content, route to fs_agent
     const last = state.messages[state.messages.length - 1];
-    if (last && last.name === "html_summarized") {
+    if (last?.name === "html_summarized") {
       return {
         messages: [
-          new AIMessage({
-            content: `Process complete`,
-            name: "router",
-          }),
+          new AIMessage({ content: `Process complete`, name: "router" }),
         ],
       };
     }
@@ -211,13 +207,13 @@ async function buildGraph() {
     .addNode("orchestrator", orchestrator.agent.bind(orchestrator))
     .addNode("web_agent", webAgent.agent.bind(webAgent))
     .addNode("web_tools", webAgent.toolNode)
+    .addNode("fs_agent", fsAgent.agent.bind(fsAgent))
+    .addNode("fs_tools", fsAgent.toolNode)
     .addConditionalEdges("web_agent", webAgent.shouldContinue.bind(webAgent), {
       web_tools: "web_tools",
       [END]: "orchestrator",
     })
     .addEdge("web_tools", "web_agent")
-    .addNode("fs_agent", fsAgent.agent.bind(fsAgent))
-    .addNode("fs_tools", fsAgent.toolNode)
     .addConditionalEdges("fs_agent", fsAgent.shouldContinue.bind(fsAgent), {
       fs_tools: "fs_tools",
       [END]: "orchestrator",

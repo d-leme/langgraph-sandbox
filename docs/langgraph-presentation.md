@@ -43,6 +43,7 @@
   - Web agent using a Playwright MCP server to scrape and summarize a website.
   - File-system agent (MCP) to write a local Markdown file.
 - Highlights multi-agent routing, tool isolation, and inter-agent handoff.
+- [Marketplace](https://mcpmarket.com/search)
 
 ![Fan-in/Fan-out orchestration diagram](./demo3.png)
 

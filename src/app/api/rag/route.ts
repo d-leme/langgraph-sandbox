@@ -7,7 +7,7 @@ import { MemoryVectorStore } from "langchain/vectorstores/memory";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import type { Document } from "@langchain/core/documents";
 import { END, START, StateGraph, Annotation } from "@langchain/langgraph";
-// Define the state schema using Annotation
+
 const RagStateAnnotation = Annotation.Root({
   folderPath: Annotation<string>,
   message: Annotation<string>,
@@ -20,7 +20,6 @@ const RagStateAnnotation = Annotation.Root({
 
 type RagGraphState = typeof RagStateAnnotation.State;
 
-// StateGraph node: Load markdown files from ai-context
 async function loadDocumentsNode(
   state: RagGraphState,
 ): Promise<Partial<RagGraphState>> {
@@ -36,7 +35,6 @@ async function loadDocumentsNode(
   return { rawDocs: docs };
 }
 
-// StateGraph node: Split documents
 async function splitDocumentsNode(
   state: RagGraphState,
 ): Promise<Partial<RagGraphState>> {
@@ -54,7 +52,6 @@ async function splitDocumentsNode(
   return { splitDocs };
 }
 
-// StateGraph node: Vectorize in memory
 async function vectorizeNode(
   state: RagGraphState,
 ): Promise<Partial<RagGraphState>> {
@@ -66,7 +63,6 @@ async function vectorizeNode(
   return { vectorStore };
 }
 
-// StateGraph node: Retrieve relevant docs
 async function retrieveNode(
   state: RagGraphState,
 ): Promise<Partial<RagGraphState>> {
@@ -78,7 +74,6 @@ async function retrieveNode(
   return { context };
 }
 
-// StateGraph node: Generate answer
 async function answerNode(
   state: RagGraphState,
 ): Promise<Partial<RagGraphState>> {
@@ -105,7 +100,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // StateGraph definition
     const folderPath = path.resolve(process.cwd(), "ai-context");
     const workflow = new StateGraph(RagStateAnnotation)
       .addNode("load", loadDocumentsNode)
